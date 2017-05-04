@@ -1,0 +1,35 @@
+#!/usr/bin/env python
+
+
+import numpy as np
+from potts import potts
+from matplotlib import pyplot as plt
+L=5
+q=3
+size=L**2
+
+P=potts(L,q)
+
+print(P.s)
+
+
+Nbetas=21
+betas=10**np.linspace(-0.25,0.25,Nbetas)
+C=np.zeros(Nbetas)
+
+for bind in range(Nbetas):
+	P.set_beta(betas[bind])
+	T=10000
+	E=np.zeros(T)
+	for t in range(T):
+		for rep in range(L**2):
+			P.MetropolisStep()
+		E[t]=P.Energy()
+
+	C[bind]=betas[bind]*np.var(E)/size
+
+Bc=np.log(1+np.sqrt(q))
+plt.figure()
+plt.semilogx(betas,C)
+plt.semilogx([Bc,Bc],[0,np.max(C)*1.05],'--k')
+plt.show()
