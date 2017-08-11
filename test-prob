@@ -1,0 +1,83 @@
+#!/usr/bin/env python
+
+
+import numpy as np
+from CPM import CPM
+from matplotlib import pyplot as plt
+
+#Transform bool array into positive integer
+def bool2int(x):				
+    y = 0
+    for i,j in enumerate(np.array(x)[::-1]):
+        y += j*2**i
+    return int(y)
+    
+#Transform positive integer into bit array
+def bitfield(n,size):	
+    x = [int(x) for x in bin(int(n))[2:]]
+    x = [0]*(size-len(x)) + x
+    return np.array(x)
+    
+      
+L=4
+size=L**2
+V0=4
+
+cells=[1]
+
+C=CPM(L,cells=cells,V0=V0)
+
+C.J=np.array([[0,1],[1,0]])*1
+C.th=10
+
+T=100000
+
+import timeit
+start_time = timeit.default_timer()
+
+
+P=np.zeros(2**((L-2)**2))
+K=np.zeros(1+(L-2)**2)
+C.initialize_state()
+for t in range(T):
+		C.MetropolisStep(mode='CA')
+		ind=bool2int(C.s[1:-1,1:-1].flatten())
+		P[ind]+=1
+		K[np.sum(C.s[1:-1,1:-1])]+=1
+		
+P/=np.sum(P)
+
+# code you want to evaluate
+elapsed = timeit.default_timer() - start_time
+K/=np.sum(K)
+
+plt.figure()
+plt.imshow(C.s)
+
+a=np.array([[0,1],[1,0]])
+print(a.flatten())
+print(bool2int(a.flatten()))
+		
+print(C.J)
+
+P1=np.zeros(2**((L-2)**2))
+K1=np.zeros(1+(L-2)**2)
+forbidden=[0,6,9]
+for n in range(2**((L-2)**2)):
+	if not n in forbidden:
+		C.s[1:-1,1:-1]=bitfield(n,(L-2)**2).reshape((L-2,L-2))
+		P1[n]=np.exp(-C.Energy())
+		K1[np.sum(C.s[1:-1,1:-1])]+=np.exp(-C.Energy())
+
+P1/=np.sum(P1)
+K1/=np.sum(K1)
+
+
+plt.figure()
+plt.plot(P)
+plt.plot(P1)
+plt.figure()
+plt.plot(K)
+plt.plot(K1)
+
+plt.show()

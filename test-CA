@@ -1,0 +1,37 @@
+#!/usr/bin/env python
+
+
+import numpy as np
+from CPM import CPM
+from matplotlib import pyplot as plt
+
+L=15
+size=L**2
+V0=12
+
+cells=[4,4]
+
+P=CPM(L,cells=cells,V0=V0)
+
+P.J=np.array([[0,3,3],[3,6,12],[3,12,6]])*1
+#P.J=np.zeros((L,L))
+P.th=20
+
+T=10000
+P.initialize_state()
+for t in range(T):
+		P.MetropolisStep(mode='CA')
+		
+print(P.J)
+P.set_beta(1)
+
+plt.figure()
+plt.imshow(P.s)
+
+T=np.zeros((L,L),int)
+for i in range(L):
+	for j in range(L):
+		T[i,j]=P.type[P.s[i,j]]
+plt.figure()
+plt.imshow(T)
+plt.show()
