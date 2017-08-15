@@ -30,7 +30,7 @@ C=CPM(L,cells=cells,V0=V0)
 C.J=np.array([[0,1],[1,0]])*1
 C.th=3
 
-T=100000
+T=10000
 T0=int(T/10)
 
 import timeit
