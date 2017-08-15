@@ -21,16 +21,17 @@ def bitfield(n,size):
       
 L=4
 size=L**2
-V0=4
+V0=8
 
 cells=[1]
 
 C=CPM(L,cells=cells,V0=V0)
 
 C.J=np.array([[0,1],[1,0]])*1
-C.th=10
+C.th=3
 
 T=100000
+T0=int(T/10)
 
 import timeit
 start_time = timeit.default_timer()
@@ -38,10 +39,20 @@ start_time = timeit.default_timer()
 
 P=np.zeros(2**((L-2)**2))
 K=np.zeros(1+(L-2)**2)
+
+allowed=set()
 C.initialize_state()
+for t in range(T0):
+		for rep in range(1+(L-2)**2):
+			C.MetropolisStep(mode='CA')
 for t in range(T):
-		C.MetropolisStep(mode='CA')
+		for rep in range(1+(L-2)**2):
+			C.MetropolisStep(mode='CA')
 		ind=bool2int(C.s[1:-1,1:-1].flatten())
+		allowed.add(ind)
+#		print()
+#		print(C.s[1:-1,1:-1])
+#		print(bitfield(ind,(L-2)**2).reshape((L-2,L-2)))
 		P[ind]+=1
 		K[np.sum(C.s[1:-1,1:-1])]+=1
 		
@@ -62,12 +73,16 @@ print(C.J)
 
 P1=np.zeros(2**((L-2)**2))
 K1=np.zeros(1+(L-2)**2)
-forbidden=[0,6,9]
+#forbidden=[0,6,9]
 for n in range(2**((L-2)**2)):
-	if not n in forbidden:
+#	if not n in forbidden:
+	if n in allowed:
 		C.s[1:-1,1:-1]=bitfield(n,(L-2)**2).reshape((L-2,L-2))
-		P1[n]=np.exp(-C.Energy())
-		K1[np.sum(C.s[1:-1,1:-1])]+=np.exp(-C.Energy())
+		print(n)
+		print(bitfield(n,(L-2)**2).reshape((L-2,L-2)))
+		E=C.Energy()
+		P1[n]=np.exp(-E)
+		K1[np.sum(C.s[1:-1,1:-1])]+=np.exp(-E)
 
 P1/=np.sum(P1)
 K1/=np.sum(K1)
