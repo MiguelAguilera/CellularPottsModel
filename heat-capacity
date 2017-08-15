@@ -1,0 +1,55 @@
+#!/usr/bin/env python
+
+
+import numpy as np
+from CPM import CPM
+from matplotlib import pyplot as plt
+
+      
+L=7
+size=L**2
+V0=0.5*(L-2)**2
+
+cells=[1]
+q=np.sum(cells)
+
+cpm=CPM(L,cells=cells,V0=V0)
+cpm.J=np.array([[0,1],[1,0]])*1
+cpm.th=1
+
+
+Nbetas=21
+betas=10**np.linspace(-1,1,Nbetas)
+C=np.zeros(Nbetas)
+Em=np.zeros(Nbetas)
+
+
+for bind in range(Nbetas):
+	cpm.initialize_state()
+
+	cpm.set_beta(betas[bind])
+	T=1000
+	T0=int(T/10)
+	E=np.zeros(T)
+	for t in range(T0):
+		for rep in range(L**2):
+			cpm.MetropolisStep(mode='CA')
+	for t in range(T):
+		for rep in range(L**2):
+			cpm.MetropolisStep(mode='CA')
+		E[t]=cpm.Energy()
+
+	C[bind]=betas[bind]**2*np.var(E)/size
+	Em[bind]=np.mean(E)/size
+	print(bind,betas[bind],Em[bind],C[bind])
+#	plt.figure()
+#	plt.imshow(cpm.s)
+	
+plt.figure()
+plt.semilogx(betas,Em)
+
+Bc=np.log(1+np.sqrt(q))
+plt.figure()
+plt.semilogx(betas,C)
+plt.semilogx([Bc,Bc],[0,np.max(C)*1.05],'--k')
+plt.show()
