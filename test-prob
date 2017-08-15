@@ -21,7 +21,7 @@ def bitfield(n,size):
       
 L=4
 size=L**2
-V0=8
+V0=3
 
 cells=[1]
 
